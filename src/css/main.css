@@ -1,0 +1,684 @@
+/**
+ * ═══════════════════════════════════════════════════════════
+ *  TETRIS ANTIGRAVITY — Main Stylesheet
+ *  90s CRT Retro Arcade Aesthetic · Neon · Glow · Scanlines
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/* ─── CSS Custom Properties ──────────────────────────────── */
+:root {
+  --bg-deep: #050510;
+  --bg-panel: rgba(8, 8, 30, 0.85);
+  --border-neon: rgba(0, 255, 255, 0.25);
+  --border-glow: rgba(0, 255, 255, 0.5);
+  --text-primary: #e0e0ff;
+  --text-neon-cyan: #00ffff;
+  --text-neon-magenta: #ff00ff;
+  --text-neon-yellow: #ffff00;
+  --text-neon-green: #00ff66;
+  --text-shadow-glow: 0 0 8px currentColor, 0 0 20px currentColor;
+  --font-pixel: 'Press Start 2P', monospace;
+  --panel-radius: 6px;
+  --cell-size: 30px;
+}
+
+/* ─── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-deep);
+  font-family: var(--font-pixel);
+  color: var(--text-primary);
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  user-select: none;
+}
+
+/* ─── CRT Scanline Overlay ───────────────────────────────── */
+#crt-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.12) 0px,
+    rgba(0, 0, 0, 0.12) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+/* ─── Screen Flicker ─────────────────────────────────────── */
+#screen-flicker {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  animation: flicker 0.15s infinite alternate;
+  background: transparent;
+}
+
+@keyframes flicker {
+  0%   { opacity: 0; background: rgba(200, 200, 255, 0.008); }
+  50%  { opacity: 1; background: rgba(200, 200, 255, 0.015); }
+  100% { opacity: 0; background: transparent; }
+}
+
+/* ─── Game Container Layout ──────────────────────────────── */
+#game-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── UI Panels ──────────────────────────────────────────── */
+.ui-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-neon);
+  border-radius: var(--panel-radius);
+  padding: 16px;
+  backdrop-filter: blur(6px);
+  box-shadow:
+    inset 0 0 30px rgba(0, 255, 255, 0.03),
+    0 0 20px rgba(0, 255, 255, 0.08),
+    0 0 60px rgba(0, 255, 255, 0.03);
+  transition: box-shadow 0.3s ease;
+  min-width: 160px;
+}
+
+.ui-panel:hover {
+  box-shadow:
+    inset 0 0 30px rgba(0, 255, 255, 0.05),
+    0 0 30px rgba(0, 255, 255, 0.15),
+    0 0 80px rgba(0, 255, 255, 0.05);
+}
+
+#panel-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+#panel-right {
+  margin-top: 20px;
+}
+
+.panel-section {
+  position: relative;
+}
+
+.panel-title {
+  font-size: 10px;
+  color: var(--text-neon-cyan);
+  text-shadow: var(--text-shadow-glow);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* ─── Stats ──────────────────────────────────────────────── */
+.stat-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.stat-label {
+  font-size: 7px;
+  color: rgba(0, 255, 255, 0.6);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 14px;
+  color: var(--text-neon-yellow);
+  text-shadow: 0 0 6px rgba(255, 255, 0, 0.5), 0 0 15px rgba(255, 255, 0, 0.2);
+}
+
+/* ─── Audio Buttons ──────────────────────────────────────── */
+#audio-controls {
+  display: flex;
+  gap: 6px;
+}
+
+/* ─── Board Wrapper ──────────────────────────────────────── */
+#board-wrapper {
+  position: relative;
+  margin-top: 20px;
+}
+
+#board-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 8px;
+  border: 2px solid var(--border-glow);
+  box-shadow:
+    0 0 15px rgba(0, 255, 255, 0.2),
+    0 0 40px rgba(0, 255, 255, 0.08),
+    inset 0 0 15px rgba(0, 255, 255, 0.05);
+  pointer-events: none;
+  z-index: 2;
+}
+
+#game-canvas {
+  display: block;
+  position: relative;
+  z-index: 1;
+  image-rendering: pixelated;
+  border-radius: 4px;
+}
+
+/* ─── Mini Canvases ──────────────────────────────────────── */
+#hold-canvas,
+#next-canvas {
+  display: block;
+  margin: 0 auto;
+  image-rendering: pixelated;
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Overlay Screens ────────────────────────────────────── */
+.overlay-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: rgba(5, 5, 16, 0.92);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.overlay-screen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.overlay-content {
+  text-align: center;
+  max-width: 500px;
+  padding: 40px;
+}
+
+/* ─── Title ──────────────────────────────────────────────── */
+.game-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.title-line {
+  font-size: 48px;
+  color: var(--text-neon-cyan);
+  text-shadow:
+    0 0 10px rgba(0, 255, 255, 0.8),
+    0 0 30px rgba(0, 255, 255, 0.4),
+    0 0 60px rgba(0, 255, 255, 0.2),
+    0 0 100px rgba(0, 255, 255, 0.1);
+  letter-spacing: 8px;
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+.title-sub {
+  font-size: 16px;
+  color: var(--text-neon-magenta);
+  text-shadow:
+    0 0 8px rgba(255, 0, 255, 0.7),
+    0 0 25px rgba(255, 0, 255, 0.3);
+  letter-spacing: 12px;
+  margin-top: 12px;
+}
+
+@keyframes titleGlow {
+  0%   { text-shadow: 0 0 10px rgba(0,255,255,0.6), 0 0 30px rgba(0,255,255,0.3); }
+  100% { text-shadow: 0 0 20px rgba(0,255,255,1), 0 0 50px rgba(0,255,255,0.5), 0 0 80px rgba(0,255,255,0.3); }
+}
+
+.overlay-title {
+  font-size: 28px;
+  color: var(--text-neon-cyan);
+  text-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+  margin-bottom: 30px;
+  letter-spacing: 5px;
+}
+
+.gameover-title {
+  color: #ff0055;
+  text-shadow: 0 0 12px rgba(255, 0, 85, 0.6), 0 0 30px rgba(255, 0, 85, 0.3);
+  animation: gameoverFlash 0.6s ease-in-out 3;
+}
+
+@keyframes gameoverFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ─── Instructions ───────────────────────────────────────── */
+.start-instructions {
+  margin-bottom: 30px;
+}
+
+.start-instructions p {
+  font-size: 8px;
+  color: rgba(224, 224, 255, 0.6);
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+/* ─── Buttons ────────────────────────────────────────────── */
+.retro-btn {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  padding: 14px 28px;
+  color: var(--text-neon-cyan);
+  background: rgba(0, 255, 255, 0.06);
+  border: 2px solid var(--text-neon-cyan);
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.15s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+.retro-btn:hover {
+  background: rgba(0, 255, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 15px rgba(0, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.retro-btn:active {
+  transform: scale(0.97);
+}
+
+.retro-btn.small {
+  font-size: 7px;
+  padding: 8px 12px;
+}
+
+.retro-btn.pulse {
+  animation: btnPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 255, 0.15); }
+  50% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.4), 0 0 50px rgba(0, 255, 255, 0.15); }
+}
+
+/* ─── Mode Select ────────────────────────────────────────── */
+.mode-select {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.mode-btn.active {
+  background: rgba(255, 0, 255, 0.15);
+  border-color: var(--text-neon-magenta);
+  color: var(--text-neon-magenta);
+  box-shadow: 0 0 12px rgba(255, 0, 255, 0.3);
+}
+
+/* ─── Final Stats ────────────────────────────────────────── */
+.final-stats {
+  margin-bottom: 20px;
+}
+
+.final-stats p {
+  font-size: 11px;
+  color: var(--text-neon-yellow);
+  text-shadow: 0 0 6px rgba(255, 255, 0, 0.4);
+  margin-bottom: 8px;
+}
+
+.new-high-score {
+  font-size: 10px;
+  color: var(--text-neon-green);
+  text-shadow: 0 0 10px rgba(0, 255, 102, 0.6);
+  margin-bottom: 20px;
+  animation: highScoreFlash 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes highScoreFlash {
+  0%   { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.high-score-line {
+  font-size: 8px;
+  color: rgba(0, 255, 255, 0.5);
+  margin-top: 24px;
+  letter-spacing: 1px;
+}
+
+.antigravity-hint {
+  font-size: 7px;
+  color: rgba(255, 0, 255, 0.5);
+  margin-top: 16px;
+}
+
+/* ─── Action Flash Text ──────────────────────────────────── */
+.action-text {
+  position: fixed;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  color: var(--text-neon-yellow);
+  text-shadow:
+    0 0 10px rgba(255, 255, 0, 0.7),
+    0 0 30px rgba(255, 255, 0, 0.4);
+  z-index: 200;
+  pointer-events: none;
+  letter-spacing: 4px;
+  white-space: nowrap;
+}
+
+.action-text.hidden {
+  display: none;
+}
+
+/* ─── Pause Settings ─────────────────────────────────────── */
+.pause-settings {
+  margin-top: 28px;
+  padding: 20px;
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(0, 255, 255, 0.03);
+}
+
+.settings-title {
+  font-size: 9px;
+  color: var(--text-neon-cyan);
+  text-shadow: var(--text-shadow-glow);
+  letter-spacing: 3px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+}
+
+.setting-row:last-child {
+  margin-bottom: 0;
+}
+
+.setting-label {
+  font-size: 7px;
+  color: rgba(0, 255, 255, 0.6);
+  letter-spacing: 2px;
+  min-width: 55px;
+}
+
+.slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.slider-value {
+  font-size: 8px;
+  color: var(--text-neon-yellow);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* ─── Retro Range Slider ─────────────────────────────────── */
+.retro-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 255, 255, 0.12);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.retro-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--text-neon-cyan);
+  border: 2px solid var(--text-neon-cyan);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+.retro-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--text-neon-cyan);
+  border: 2px solid var(--text-neon-cyan);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+/* Toggle button active state */
+.toggle-btn.off {
+  border-color: rgba(255, 0, 85, 0.5);
+  color: rgba(255, 0, 85, 0.7);
+  background: rgba(255, 0, 85, 0.06);
+}
+
+/* ─── Danger Button ──────────────────────────────────────── */
+.retro-btn.danger {
+  border-color: #ff0055;
+  color: #ff0055;
+  background: rgba(255, 0, 85, 0.06);
+}
+
+.retro-btn.danger:hover {
+  background: rgba(255, 0, 85, 0.15);
+  box-shadow: 0 0 20px rgba(255, 0, 85, 0.3), inset 0 0 15px rgba(255, 0, 85, 0.1);
+}
+
+.pause-actions {
+  margin-top: 20px;
+}
+
+/* ─── Mobile Floating HUD ────────────────────────────────── */
+#mobile-hud {
+  display: none;
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 60;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.mobile-hud-btn {
+  font-family: var(--font-pixel);
+  font-size: 16px;
+  width: 44px;
+  height: 44px;
+  background: rgba(8, 8, 30, 0.85);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 8px;
+  color: var(--text-neon-cyan);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+.mobile-hud-btn:active {
+  background: rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+/* ─── Swipe Hint ─────────────────────────────────────────── */
+.swipe-hint {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 55;
+  text-align: center;
+  padding: 14px 24px;
+  background: rgba(8, 8, 30, 0.9);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.swipe-hint p {
+  font-size: 7px;
+  color: rgba(0, 255, 255, 0.5);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.swipe-hint p:last-child {
+  margin-bottom: 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  #game-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    padding-top: 50px; /* space for mobile HUD */
+  }
+
+  .ui-panel {
+    flex-direction: row;
+    min-width: auto;
+    padding: 8px;
+  }
+
+  #panel-left {
+    flex-direction: row;
+    gap: 8px;
+    margin-top: 0;
+    order: -1;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Hide hold canvas on small screens to save space */
+  #hold-section {
+    display: none;
+  }
+
+  #panel-right {
+    display: none;
+  }
+
+  #board-wrapper {
+    margin-top: 0;
+  }
+
+  #mobile-hud {
+    display: flex;
+  }
+
+  .title-line {
+    font-size: 28px;
+  }
+
+  .title-sub {
+    font-size: 10px;
+  }
+
+  .stat-row {
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 6px;
+  }
+
+  .stat-value {
+    font-size: 11px;
+  }
+
+  /* Audio controls hidden on mobile (available in pause settings) */
+  #audio-controls {
+    display: none;
+  }
+
+  .overlay-content {
+    padding: 24px 16px;
+  }
+
+  .start-instructions {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .title-line {
+    font-size: 20px;
+    letter-spacing: 4px;
+  }
+
+  .title-sub {
+    font-size: 8px;
+    letter-spacing: 6px;
+  }
+}
+
+/* ─── Antigravity Mode Physics Bodies ────────────────────── */
+.physics-block {
+  position: absolute;
+  border-radius: 3px;
+  cursor: grab;
+  z-index: 10;
+  transition: none;
+}
+
+.physics-block:active {
+  cursor: grabbing;
+}
+
+/* ─── Scrollbar Hidden ───────────────────────────────────── */
+::-webkit-scrollbar {
+  display: none;
+}

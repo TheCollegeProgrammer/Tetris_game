@@ -1,0 +1,19 @@
+{
+  "name": "tetris-antigravity",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^8.0.1"
+  },
+  "dependencies": {
+    "gsap": "^3.14.2",
+    "howler": "^2.2.4",
+    "matter-js": "^0.20.0"
+  }
+}
